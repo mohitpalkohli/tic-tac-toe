@@ -19,7 +19,7 @@ npm start
 You can access the application at HTTP://localhost:3001
 
 ## Using the application
-![Alt text]https://github.com/mohitpalkohli/tic-tac-toe/blob/main/App_screenshot.png?raw=true
+![Screenshot of main app screen.]([https://myoctocat.com/assets/images/base-octocat.svg](https://github.com/mohitpalkohli/tic-tac-toe/blob/main/App_screenshot.png))
 1. Enter your username
 2. You can view the games you're part of in the sidebar
 3. Clicking on a current square marks your move as long as the game is in progress and it is your turn
