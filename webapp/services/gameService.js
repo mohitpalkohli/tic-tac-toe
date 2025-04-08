@@ -112,6 +112,8 @@ class GameService {
     );
   }
 
+
+
   checkWinner(moves) {
     // Create a board representation
     const board = Array(3).fill(null).map(() => Array(3).fill(null));
@@ -119,9 +121,10 @@ class GameService {
       board[move.row][move.col] = move.player;
     });
 
-    // Check each win pattern
+    // Check possible winning patterns against the output of the moves table
     for (const pattern of WIN_PATTERNS) {
       const [a, b, c] = pattern;
+      // First check is to make sure that we don't return true due to all nulls
       if (board[a[0]][a[1]] && 
           board[a[0]][a[1]] === board[b[0]][b[1]] && 
           board[a[0]][a[1]] === board[c[0]][c[1]]) {
