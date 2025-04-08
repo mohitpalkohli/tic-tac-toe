@@ -125,6 +125,18 @@ button:hover {
   transform: translateY(-2px);
 }
 
+.game-card.user-won {
+  background-color: #2c3d2c;  /* green shade */
+}
+
+.game-card.user-lost {
+  background-color: #3d2c2c;  /* red shade */
+}
+
+.game-card.draw {
+  background-color: #3d3d2c;  /* yellow shade */
+}
+
 .game-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -178,4 +190,89 @@ button:hover {
   color: #61dafb;
   font-size: 20px;
   font-weight: bold;
+}
+
+.error-message {
+  color: #ff4444;
+  background-color: #ffebee;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+}
+
+.modal-title {
+  margin-top: 0;
+  color: #282c34;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  padding: 8px 16px;
+}
+
+.modal-buttons button.cancel {
+  background-color: #dc3545;
+}
+
+.new-game-button {
+  position: absolute;
+  top: 20px;
+  right: 180px;  /* Increased from 140px to 180px to add more space */
+}
+
+.json-toggle {
+  color: #61dafb;
+  cursor: pointer;
+  margin: 20px 0;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.json-toggle:hover {
+  color: #4fa8c7;
+}
+
+.json-content {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.json-toggle .arrow {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.json-toggle .arrow.expanded {
+  transform: rotate(90deg);
 } 

@@ -86,4 +86,55 @@ router.post('/:id/move', async (req, res) => {
   }
 });
 
+// Get game state with long polling
+router.get('/:id/poll', async (req, res) => {
+  const gameId = req.params.id;
+  const lastKnownState = req.query.state; // JSON string of last known state
+  const POLL_TIMEOUT = 30000; // 30 seconds timeout
+
+  try {
+    const checkForChanges = async () => {
+      const game = await req.gameService.getGameById(gameId);
+      if (!game) {
+        res.status(404).json({ error: 'Game not found' });
+        return true;
+      }
+
+      // If state is different or 30 seconds passed, send response
+      if (!lastKnownState || JSON.stringify(game) !== lastKnownState) {
+        res.json(game);
+        return true;
+      }
+      return false;
+    };
+
+    // Check immediately first
+    if (await checkForChanges()) return;
+
+    // If no immediate change, set up polling
+    let pollInterval = setInterval(async () => {
+      if (await checkForChanges()) {
+        clearInterval(pollInterval);
+      }
+    }, 1000);
+
+    // Set timeout to end polling
+    setTimeout(() => {
+      clearInterval(pollInterval);
+      if (!res.headersSent) {
+        res.json({ noChange: true });
+      }
+    }, POLL_TIMEOUT);
+
+    // Clean up on client disconnect
+    req.on('close', () => {
+      clearInterval(pollInterval);
+    });
+
+  } catch (error) {
+    console.error('Poll error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router; 

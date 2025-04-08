@@ -43,9 +43,7 @@ class GameService {
   }
 
   async getBoardForGame(game) {
-    console.log(game);
     const moves = await this.db.all('SELECT * FROM moves WHERE game_id = ?', [game.id]);
-    console.log(moves);
     const board = [[null, null, null], [null, null, null], [null, null, null]];
     for (const move of moves) {
       board[move.row][move.col] = move.player;
