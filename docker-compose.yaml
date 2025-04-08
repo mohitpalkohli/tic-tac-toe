@@ -1,0 +1,17 @@
+services:
+  webapp:
+    build:
+      context: ./frontend
+    command: tail -f /dev/null
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+  backend:
+    build:
+      context: ./webapp
+    command: tail -f /dev/null
+    volumes:
+      - ./webapp:/app
+      - /app/node_modules
