@@ -16,7 +16,10 @@ cd /path/to/frontend
 npm install
 npm start
 ```
-You can access the application at HTTP://localhost:3001
+* Access the application: http://localhost:3001
+* API documentation: http://localhost:3000/api-docs
+
+
 
 ## Using the application
 ![Screenshot of tic-tac-toe app](https://github.com/mohitpalkohli/tic-tac-toe/blob/main/App_screenshot.png)
