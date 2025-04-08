@@ -38,13 +38,18 @@ class GameService {
 
   async getGameById(gameId) {
     const game = await this.db.get('SELECT * FROM games WHERE id = ?', [gameId]);
-    game.board = await this.getBoardForGame(game);
+    if (game) {
+      game.board = await this.getBoardForGame(game);
+    }
     return game;
   }
 
   async getBoardForGame(game) {
-    const moves = await this.db.all('SELECT * FROM moves WHERE gameId = ?', [game.id]);
     const board = [[null, null, null], [null, null, null], [null, null, null]];
+    if (!game) {
+      return board;
+    }
+    const moves = await this.db.all('SELECT * FROM moves WHERE gameId = ?', [game.id]);
     for (const move of moves) {
       board[move.row][move.col] = move.player;
     }

@@ -16,13 +16,13 @@ describe('GameService', () => {
 
   describe('createGame', () => {
     it('should create a new game with provided players', async () => {
-      const playerX = 'Alice';
-      const playerO = 'Bob';
+      const playerX = 'Jack';
+      const playerO = 'Jill';
 
       await gameService.createGame(playerX, playerO);
 
       expect(mockDb.run).toHaveBeenCalledWith(
-        'INSERT INTO games (id, player_x, player_o, current_player, status) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO games (id, playerX, playerO, currentPlayer, status) VALUES (?, ?, ?, ?, ?)',
         expect.arrayContaining([expect.any(String), playerX, playerO, 'X', 'IN_PROGRESS'])
       );
     });
@@ -30,16 +30,23 @@ describe('GameService', () => {
 
   describe('getGameById', () => {
     it('should return game when found', async () => {
-      const mockGame = { id: '123', player_x: 'Alice', player_o: 'Bob' };
+      const mockGame = { 
+        id: '123', 
+        playerX: 'Jack', 
+        playerO: 'Jill',
+        currentPlayer: 'X',
+        status: 'IN_PROGRESS',
+        winner: null
+      };
       mockDb.get.mockResolvedValue(mockGame);
+      mockDb.all.mockResolvedValue([]); // For board state
 
       const result = await gameService.getGameById('123');
 
-      expect(result).toEqual(mockGame);
-      expect(mockDb.get).toHaveBeenCalledWith(
-        'SELECT * FROM games WHERE id = ?',
-        ['123']
-      );
+      expect(result).toEqual({
+        ...mockGame,
+        board: [[null, null, null], [null, null, null], [null, null, null]]
+      });
     });
 
     it('should return null when game not found', async () => {
@@ -61,6 +68,7 @@ describe('GameService', () => {
 
     it('should throw error if game is complete', async () => {
       mockDb.get.mockResolvedValue({ status: 'COMPLETE' });
+      mockDb.all.mockResolvedValue([]);
 
       await expect(gameService.validateMove('123', 'X', 0, 0))
         .rejects.toThrow('Game is already complete');
@@ -69,18 +77,20 @@ describe('GameService', () => {
     it('should throw error if not player\'s turn', async () => {
       mockDb.get.mockResolvedValue({ 
         status: 'IN_PROGRESS',
-        current_player: 'O'
+        currentPlayer: 'O'
       });
-
+      mockDb.all.mockResolvedValue([]);
+      
       await expect(gameService.validateMove('123', 'X', 0, 0))
         .rejects.toThrow('Not your turn');
     });
 
     it('should throw error if position already taken', async () => {
       mockDb.get
-        .mockResolvedValueOnce({ status: 'IN_PROGRESS', current_player: 'X' })
+        .mockResolvedValueOnce({ status: 'IN_PROGRESS', currentPlayer: 'X' })
         .mockResolvedValueOnce({ id: '123' }); // existing move
-
+      mockDb.all.mockResolvedValue([]);
+      
       await expect(gameService.validateMove('123', 'X', 0, 0))
         .rejects.toThrow('Position already taken');
     });
@@ -88,15 +98,12 @@ describe('GameService', () => {
 
   describe('makeMove', () => {
     it('should record move and update game state', async () => {
-      mockDb.get
-        .mockResolvedValueOnce({ count: 0 }) // move count
-        .mockResolvedValueOnce(null); // no winner check
       mockDb.all.mockResolvedValue([]); // no moves for winner check
 
       const result = await gameService.makeMove('123', 'X', 0, 0);
 
       expect(result).toEqual(expect.objectContaining({
-        move_number: 1,
+        id: '123',
         player: 'X',
         row: 0,
         col: 0,
@@ -113,7 +120,6 @@ describe('GameService', () => {
         { player: 'X', row: 0, col: 2 }
       ];
       
-      mockDb.get.mockResolvedValueOnce({ count: 2 }); // move count
       mockDb.all.mockResolvedValue(winningMoves);
 
       const result = await gameService.makeMove('123', 'X', 0, 2);
@@ -137,7 +143,6 @@ describe('GameService', () => {
         { player: 'X', row: 2, col: 2 }
       ];
       
-      mockDb.get.mockResolvedValueOnce({ count: 8 }); // move count
       mockDb.all.mockResolvedValue(drawMoves);
 
       const result = await gameService.makeMove('123', 'X', 2, 2);

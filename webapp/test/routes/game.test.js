@@ -30,14 +30,15 @@ describe('Game Routes', () => {
     it('should create new game', async () => {
       const response = await request(app)
         .post('/api/games')
-        .send({ playerX: 'Alice', playerO: 'Bob' });
+        .send({ playerX: 'Joe', playerO: 'Jack' });
 
       expect(response.status).toBe(201);
       expect(response.body).toEqual(expect.objectContaining({
         playerX: 'Joe',
         playerO: 'Jack',
         currentPlayer: 'X',
-        status: 'IN_PROGRESS'
+        status: 'IN_PROGRESS',
+        winner: null
       }));
     });
 
@@ -53,29 +54,47 @@ describe('Game Routes', () => {
     it('should return 400 if playerX is missing', async () => {
       const response = await request(app)
         .post('/api/games')
-        .send({ playerO: 'Bob' });
+        .send({ playerO: 'Jack' });
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('Both player names are required');
     });
 
     it('should return 400 if playerO is missing', async () => {
-        const response = await request(app)
-          .post('/api/games')
-          .send({ playerX: 'Joe' });
-  
-        expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Both player names are required');
-      });
+      const response = await request(app)
+        .post('/api/games')
+        .send({ playerX: 'Joe' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Both player names are required');
+    });
   });
 
   describe('GET /', () => {
     it('should return all games', async () => {
       const mockGames = [
-        { id: '123', playerX: 'Alice', playerO: 'Bob' },
-        { id: '456', playerX: 'Charlie', playerO: 'Dave' }
+        { 
+          id: '123', 
+          playerX: 'Jack', 
+          playerO: 'Jill', 
+          currentPlayer: 'X', 
+          status: 'IN_PROGRESS',
+          winner: null,
+          board: [[null, null, null], [null, null, null], [null, null, null]]
+        },
+        { 
+          id: '456', 
+          playerX: 'Charlie', 
+          playerO: 'Dave', 
+          currentPlayer: 'O', 
+          status: 'IN_PROGRESS',
+          winner: null,
+          board: [[null, null, null], [null, null, null], [null, null, null]]
+        }
       ];
-      mockDb.all.mockResolvedValue(mockGames);
+      mockDb.all
+      .mockResolvedValueOnce(mockGames) // For game state
+      .mockResolvedValue([]); // For board state
 
       const response = await request(app)
         .get('/api/games');
@@ -87,8 +106,17 @@ describe('Game Routes', () => {
 
   describe('GET /:id', () => {
     it('should return game by id', async () => {
-      const mockGame = { id: '123', playerX: 'Alice', playerO: 'Bob' };
+      const mockGame = { 
+        id: '123', 
+        playerX: 'Jack', 
+        playerO: 'Jill',
+        currentPlayer: 'X',
+        status: 'IN_PROGRESS',
+        winner: null,
+        board: [[null, null, null], [null, null, null], [null, null, null]]
+      };
       mockDb.get.mockResolvedValue(mockGame);
+      mockDb.all.mockResolvedValue([]); // For board state
 
       const response = await request(app)
         .get('/api/games/123');
@@ -110,13 +138,32 @@ describe('Game Routes', () => {
   describe('GET /player/:name', () => {
     it('should return games for player', async () => {
       const mockGames = [
-        { id: '123', playerX: 'Alice', playerO: 'Bob' },
-        { id: '456', playerX: 'Charlie', playerO: 'Alice' }
+        { 
+          id: '123', 
+          playerX: 'Jack', 
+          playerO: 'Jill',
+          currentPlayer: 'X',
+          status: 'IN_PROGRESS',
+          winner: null,
+          board: [[null, null, null], [null, null, null], [null, null, null]]
+        },
+        { 
+          id: '456', 
+          playerX: 'Charlie', 
+          playerO: 'Jack',
+          currentPlayer: 'O',
+          status: 'IN_PROGRESS',
+          winner: null,
+          board: [[null, null, null], [null, null, null], [null, null, null]]
+        }
       ];
-      mockDb.all.mockResolvedValue(mockGames);
+      
+      mockDb.all
+        .mockResolvedValueOnce(mockGames) // For game state
+        .mockResolvedValue([]); // For board state
 
       const response = await request(app)
-        .get('/api/games/player/Alice');
+        .get('/api/games/player/Jack');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockGames);
@@ -127,8 +174,7 @@ describe('Game Routes', () => {
     it('should make move and return updated state', async () => {
       mockDb.get
         .mockResolvedValueOnce({ status: 'IN_PROGRESS', currentPlayer: 'X' })
-        .mockResolvedValueOnce(null) // no existing move
-        .mockResolvedValueOnce({ count: 0 }); // move count
+        .mockResolvedValueOnce(null); // no existing move
       mockDb.all.mockResolvedValue([]); // no moves for winner check
 
       const response = await request(app)
@@ -138,15 +184,24 @@ describe('Game Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual(expect.objectContaining({
         player: 'X',
-        status: 'IN_PROGRESS'
+        row: 0,
+        col: 0,
+        status: 'IN_PROGRESS',
+        winner: null
       }));
     });
 
     it('should return 400 for invalid move', async () => {
       mockDb.get.mockResolvedValue({ 
-        status: 'IN_PROGRESS', 
-        currentPlayer: 'O' 
+        id: '123', 
+        playerX: 'Jack', 
+        playerO: 'Jill',
+        currentPlayer: 'O',
+        status: 'IN_PROGRESS',
+        winner: null,
       });
+
+      mockDb.all.mockResolvedValue([]);
 
       const response = await request(app)
         .post('/api/games/123/move')
