@@ -21,7 +21,7 @@ function PlayerNameForm() {
             <input
               type="text"
               value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
+              onChange={e => setPlayerName(e.target.value)}
               placeholder="Enter your name"
               required
             />
