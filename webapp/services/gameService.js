@@ -37,20 +37,41 @@ class GameService {
   }
 
   async getGameById(gameId) {
-    return await this.db.get('SELECT * FROM games WHERE id = ?', [gameId]);
+    const game = await this.db.get('SELECT * FROM games WHERE id = ?', [gameId]);
+    game.board = await this.getBoardForGame(game);
+    return game;
+  }
+
+  async getBoardForGame(game) {
+    console.log(game);
+    const moves = await this.db.all('SELECT * FROM moves WHERE game_id = ?', [game.id]);
+    console.log(moves);
+    const board = [[null, null, null], [null, null, null], [null, null, null]];
+    for (const move of moves) {
+      board[move.row][move.col] = move.player;
+    }
+    return board;
   }
 
   async getAllGames() {
-    return await this.db.all('SELECT * FROM games ORDER BY created_at DESC');
+    const games = await this.db.all('SELECT * FROM games ORDER BY created_at DESC');
+    for (const game of games) {
+      game.board = await this.getBoardForGame(game);
+    }
+    return games;
   }
 
   async getGamesByPlayer(playerName) {
-    return await this.db.all(
+    const games = await this.db.all(
       `SELECT * FROM games 
        WHERE player_x = ? OR player_o = ? 
        ORDER BY created_at DESC`,
       [playerName, playerName]
     );
+    for (const game of games) {
+      game.board = await this.getBoardForGame(game);
+    }
+    return games;
   }
 
   async validateMove(gameId, player, row, col) {
