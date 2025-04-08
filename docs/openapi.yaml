@@ -1,0 +1,281 @@
+openapi: 3.0.0
+info:
+  title: Tic Tac Toe API
+  version: 1.0.0
+  description: API for managing Tic Tac Toe games
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+
+paths:
+  /games:
+    get:
+      summary: Get all games
+      responses:
+        '200':
+          description: List of all games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      summary: Create a new game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - playerX
+                - playerO
+              properties:
+                playerX:
+                  type: string
+                playerO:
+                  type: string
+      responses:
+        '201':
+          description: Game created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /games/{id}:
+    get:
+      summary: Get a specific game
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Game ID
+      responses:
+        '200':
+          description: Game details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '404':
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /games/{id}/poll:
+    get:
+      summary: Long poll for game state changes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Game ID
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Current game state JSON
+      responses:
+        '200':
+          description: Updated game state or no change notification
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Game'
+                  - type: object
+                    properties:
+                      noChange:
+                        type: boolean
+        '404':
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /games/player/{name}:
+    get:
+      summary: Get games for a specific player
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Player name
+      responses:
+        '200':
+          description: List of player's games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /games/{id}/move:
+    post:
+      summary: Make a move in a game
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Game ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - player
+                - row
+                - col
+              properties:
+                player:
+                  type: string
+                  enum: [X, O]
+                row:
+                  type: integer
+                  minimum: 0
+                  maximum: 2
+                col:
+                  type: integer
+                  minimum: 0
+                  maximum: 2
+      responses:
+        '200':
+          description: Move successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoveResult'
+        '400':
+          description: Invalid move
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Game:
+      type: object
+      properties:
+        id:
+          type: string
+        player_x:
+          type: string
+        player_o:
+          type: string
+        current_player:
+          type: string
+          enum: [X, O]
+        status:
+          type: string
+          enum: [IN_PROGRESS, COMPLETE]
+        winner:
+          type: string
+          enum: [X, O, DRAW, null]
+        board:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+              enum: [X, O, null]
+        created_at:
+          type: string
+          format: date-time
+
+    MoveResult:
+      type: object
+      properties:
+        id:
+          type: string
+        move_number:
+          type: integer
+        player:
+          type: string
+          enum: [X, O]
+        row:
+          type: integer
+        col:
+          type: integer
+        next_player:
+          type: string
+          enum: [X, O]
+        status:
+          type: string
+          enum: [IN_PROGRESS, COMPLETE]
+        winner:
+          type: string
+          enum: [X, O, DRAW, null]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string 

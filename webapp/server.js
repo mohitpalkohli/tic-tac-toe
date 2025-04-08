@@ -3,6 +3,9 @@ const { open } = require('sqlite');
 const sqlite3 = require('sqlite3');
 const gameRoutes = require('./routes/game');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,6 +58,12 @@ const PORT = process.env.PORT || 3000;
 
     // Routes
     app.use('/api/games', gameRoutes);
+
+    // Load OpenAPI spec
+    const openApiSpec = YAML.load(path.join(__dirname, '../docs/openapi.yaml'));
+
+    // Serve API documentation
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
     // Error handling middleware
     app.use((err, req, res, next) => {
