@@ -7,6 +7,7 @@ This application was developed with the assistance of Cursor IDE. I designed and
 ## Run the application locally
 ```
 // Node server (runs on localhost:3000)
+// Supported node version v22.14.0
 cd /path/to/webapp
 npm install
 node server.js
