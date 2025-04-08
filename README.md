@@ -27,3 +27,12 @@ You can access the application at HTTP://localhost:3001
 3. Clicking on a current square marks your move as long as the game is in progress and it is your turn
 4. Click "Change Player" to go back to the main menu
 5. Click "New Game" to start a new game against another player
+
+## Assumptions
+* User authentication is not needed.
+* The application will not remember which game the user last had selected when they re-enter the application.
+* Long polling is appropriate for keeping current with the most recent game state.
+
+## Future areas of improvement
+* Polling: Server-side events or websockets would be more efficient
+* User account creation and authentication
