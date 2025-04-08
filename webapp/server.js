@@ -23,24 +23,23 @@ const PORT = process.env.PORT || 3000;
     await db.exec(`
       CREATE TABLE IF NOT EXISTS games (
         id TEXT PRIMARY KEY,
-        player_x TEXT NOT NULL,
-        player_o TEXT NOT NULL,
-        current_player TEXT CHECK(current_player IN ('X', 'O')) NOT NULL,
+        playerX TEXT NOT NULL,
+        playerO TEXT NOT NULL,
+        currentPlayer TEXT CHECK(currentPlayer IN ('X', 'O')) NOT NULL,
         status TEXT CHECK(status IN ('IN_PROGRESS', 'COMPLETE')) NOT NULL,
         winner TEXT CHECK(winner IN ('X', 'O', 'DRAW')),
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
     await db.exec(`
       CREATE TABLE IF NOT EXISTS moves (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        game_id TEXT NOT NULL,
+        gameId TEXT NOT NULL,
         player TEXT CHECK(player IN ('X', 'O')) NOT NULL,
         row INTEGER CHECK(row BETWEEN 0 AND 2),
         col INTEGER CHECK(col BETWEEN 0 AND 2),
-        move_number INTEGER,
-        FOREIGN KEY (game_id) REFERENCES games(id)
+        FOREIGN KEY (gameId) REFERENCES games(id)
       )
     `);
 
@@ -56,13 +55,10 @@ const PORT = process.env.PORT || 3000;
       next();
     });
 
-    // Routes
-    app.use('/api/games', gameRoutes);
-
     // Load OpenAPI spec
     const openApiSpec = YAML.load(path.join(__dirname, '../docs/openapi.yaml'));
 
-    // Serve API documentation
+    app.use('/api/games', gameRoutes);
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
     // Error handling middleware

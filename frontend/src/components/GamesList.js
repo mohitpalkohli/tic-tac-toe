@@ -35,16 +35,12 @@ function GameCard({ game, onClick, isSelected, currentPlayerName }) {
     const classes = ['game-card'];
     if (isSelected) classes.push('selected');
     
-    if (game.winner) {
-      if (game.winner === 'DRAW') {
-        classes.push('draw');
-      } else {
-        const isWinner = 
-          (game.winner === 'X' && game.player_x === currentPlayerName) ||
-          (game.winner === 'O' && game.player_o === currentPlayerName);
-        
-        classes.push(isWinner ? 'user-won' : 'user-lost');
-      }
+    if (game.winner && game.winner !== 'DRAW') {
+      const isWinner = 
+        (game.winner === 'X' && game.playerX === currentPlayerName) ||
+        (game.winner === 'O' && game.playerO === currentPlayerName);
+      
+      classes.push(isWinner ? 'user-won' : 'user-lost');
     }
     
     return classes.join(' ');
@@ -56,13 +52,13 @@ function GameCard({ game, onClick, isSelected, currentPlayerName }) {
       onClick={onClick}
     >
       <h3>Game #{game.id.slice(0, 8)}</h3>
-      <p>Player X: {game.player_x}</p>
-      <p>Player O: {game.player_o}</p>
+      <p>Player X: {game.playerX}</p>
+      <p>Player O: {game.playerO}</p>
       <p className="status">
         {game.status === 'IN_PROGRESS' ? 'In Progress' : 
           game.winner === 'DRAW' ? 'Draw' : `Winner: ${game.winner}`}
       </p>
-      <p className="date">{formatDate(game.created_at)}</p>
+      <p className="date">{formatDate(game.createdAt)}</p>
     </div>
   );
 }
@@ -74,17 +70,17 @@ function GameStatus({ game }) {
   if (game.winner === 'DRAW') {
     resultText = 'Game ended in a draw';
   } else if (game.winner === 'X' || game.winner === 'O') {
-    const winnerName = game.winner === 'X' ? game.player_x : game.player_o;
+    const winnerName = game.winner === 'X' ? game.playerX : game.playerO;
     resultText = `Player ${game.winner} wins! (${winnerName})`;
-  } else if (game.current_player) {
-    const currentPlayerName = game.current_player === 'X' ? game.player_x : game.player_o;
-    resultText = `${currentPlayerName}'s turn (${game.current_player})`;
+  } else if (game.currentPlayer) {
+    const currentPlayerName = game.currentPlayer === 'X' ? game.playerX : game.playerO;
+    resultText = `${currentPlayerName}'s turn (${game.currentPlayer})`;
   }
 
   return (
     <>
-      <p className="player-name">Player X: {game.player_x}</p>
-      <p className="player-name">Player O: {game.player_o}</p>
+      <p className="player-name">Player X: {game.playerX}</p>
+      <p className="player-name">Player O: {game.playerO}</p>
       <p className={game.winner ? "game-result" : "current-turn"}>{resultText}</p>
     </>
   );
@@ -167,7 +163,7 @@ function GamesList() {
       try {
         const playerGames = await gameService.getPlayerGames(playerName);
         const sortedGames = playerGames.sort((a, b) => 
-          new Date(b.created_at) - new Date(a.created_at)
+          new Date(b.createdAt) - new Date(a.createdAt)
         );
         setGames(sortedGames);
         setSelectedGame(sortedGames[0]);
@@ -226,11 +222,11 @@ function GamesList() {
   const isPlayersTurn = (game) => {
     if (!game || game.winner) return false;
     
-    const isPlayerX = game.player_x === playerName;
-    const isPlayerO = game.player_o === playerName;
+    const isPlayerX = game.playerX === playerName;
+    const isPlayerO = game.playerO === playerName;
     
-    return (isPlayerX && game.current_player === 'X') || 
-           (isPlayerO && game.current_player === 'O');
+    return (isPlayerX && game.currentPlayer === 'X') || 
+           (isPlayerO && game.currentPlayer === 'O');
   };
 
   const handleCellClick = async (row, col) => {
@@ -242,7 +238,7 @@ function GamesList() {
     try {
       await gameService.makeMove(
         selectedGame.id,
-        selectedGame.current_player,
+        selectedGame.currentPlayer,
         row,
         col
       );
@@ -258,7 +254,7 @@ function GamesList() {
       await gameService.createGame(playerName, opponent);
       const playerGames = await gameService.getPlayerGames(playerName);
       const sortedGames = playerGames.sort((a, b) => 
-        new Date(b.created_at) - new Date(a.created_at)
+        new Date(b.createdAt) - new Date(a.createdAt)
       );
       setGames(sortedGames);
       setSelectedGame(sortedGames[0]);

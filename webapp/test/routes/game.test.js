@@ -34,9 +34,9 @@ describe('Game Routes', () => {
 
       expect(response.status).toBe(201);
       expect(response.body).toEqual(expect.objectContaining({
-        player_x: 'Alice',
-        player_o: 'Bob',
-        current_player: 'X',
+        playerX: 'Joe',
+        playerO: 'Jack',
+        currentPlayer: 'X',
         status: 'IN_PROGRESS'
       }));
     });
@@ -49,13 +49,31 @@ describe('Game Routes', () => {
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('Both player names are required');
     });
+
+    it('should return 400 if playerX is missing', async () => {
+      const response = await request(app)
+        .post('/api/games')
+        .send({ playerO: 'Bob' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Both player names are required');
+    });
+
+    it('should return 400 if playerO is missing', async () => {
+        const response = await request(app)
+          .post('/api/games')
+          .send({ playerX: 'Joe' });
+  
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe('Both player names are required');
+      });
   });
 
   describe('GET /', () => {
     it('should return all games', async () => {
       const mockGames = [
-        { id: '123', player_x: 'Alice', player_o: 'Bob' },
-        { id: '456', player_x: 'Charlie', player_o: 'Dave' }
+        { id: '123', playerX: 'Alice', playerO: 'Bob' },
+        { id: '456', playerX: 'Charlie', playerO: 'Dave' }
       ];
       mockDb.all.mockResolvedValue(mockGames);
 
@@ -69,7 +87,7 @@ describe('Game Routes', () => {
 
   describe('GET /:id', () => {
     it('should return game by id', async () => {
-      const mockGame = { id: '123', player_x: 'Alice', player_o: 'Bob' };
+      const mockGame = { id: '123', playerX: 'Alice', playerO: 'Bob' };
       mockDb.get.mockResolvedValue(mockGame);
 
       const response = await request(app)
@@ -92,8 +110,8 @@ describe('Game Routes', () => {
   describe('GET /player/:name', () => {
     it('should return games for player', async () => {
       const mockGames = [
-        { id: '123', player_x: 'Alice', player_o: 'Bob' },
-        { id: '456', player_x: 'Charlie', player_o: 'Alice' }
+        { id: '123', playerX: 'Alice', playerO: 'Bob' },
+        { id: '456', playerX: 'Charlie', playerO: 'Alice' }
       ];
       mockDb.all.mockResolvedValue(mockGames);
 
@@ -108,7 +126,7 @@ describe('Game Routes', () => {
   describe('POST /:id/move', () => {
     it('should make move and return updated state', async () => {
       mockDb.get
-        .mockResolvedValueOnce({ status: 'IN_PROGRESS', current_player: 'X' })
+        .mockResolvedValueOnce({ status: 'IN_PROGRESS', currentPlayer: 'X' })
         .mockResolvedValueOnce(null) // no existing move
         .mockResolvedValueOnce({ count: 0 }); // move count
       mockDb.all.mockResolvedValue([]); // no moves for winner check
@@ -119,7 +137,6 @@ describe('Game Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(expect.objectContaining({
-        move_number: 1,
         player: 'X',
         status: 'IN_PROGRESS'
       }));
@@ -128,7 +145,7 @@ describe('Game Routes', () => {
     it('should return 400 for invalid move', async () => {
       mockDb.get.mockResolvedValue({ 
         status: 'IN_PROGRESS', 
-        current_player: 'O' 
+        currentPlayer: 'O' 
       });
 
       const response = await request(app)

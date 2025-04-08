@@ -22,15 +22,15 @@ class GameService {
   async createGame(playerX, playerO) {
     const gameId = uuidv4();
     await this.db.run(
-      'INSERT INTO games (id, player_x, player_o, current_player, status) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO games (id, playerX, playerO, currentPlayer, status) VALUES (?, ?, ?, ?, ?)',
       [gameId, playerX, playerO, 'X', 'IN_PROGRESS']
     );
     
     return {
       id: gameId,
-      player_x: playerX,
-      player_o: playerO,
-      current_player: 'X',
+      playerX,
+      playerO,
+      currentPlayer: 'X',
       status: 'IN_PROGRESS',
       winner: null
     };
@@ -43,7 +43,7 @@ class GameService {
   }
 
   async getBoardForGame(game) {
-    const moves = await this.db.all('SELECT * FROM moves WHERE game_id = ?', [game.id]);
+    const moves = await this.db.all('SELECT * FROM moves WHERE gameId = ?', [game.id]);
     const board = [[null, null, null], [null, null, null], [null, null, null]];
     for (const move of moves) {
       board[move.row][move.col] = move.player;
@@ -52,7 +52,7 @@ class GameService {
   }
 
   async getAllGames() {
-    const games = await this.db.all('SELECT * FROM games ORDER BY created_at DESC');
+    const games = await this.db.all('SELECT * FROM games ORDER BY createdAt DESC');
     for (const game of games) {
       game.board = await this.getBoardForGame(game);
     }
@@ -62,8 +62,8 @@ class GameService {
   async getGamesByPlayer(playerName) {
     const games = await this.db.all(
       `SELECT * FROM games 
-       WHERE player_x = ? OR player_o = ? 
-       ORDER BY created_at DESC`,
+       WHERE playerX = ? OR playerO = ? 
+       ORDER BY createdAt DESC`,
       [playerName, playerName]
     );
     for (const game of games) {
@@ -81,7 +81,7 @@ class GameService {
     if (game.status !== 'IN_PROGRESS') {
       throw new Error('Game is already complete');
     }
-    if (game.current_player !== player) {
+    if (game.currentPlayer !== player) {
       throw new Error('Not your turn');
     }
 
@@ -95,14 +95,14 @@ class GameService {
 
   async getMoveAtPosition(gameId, row, col) {
     return await this.db.get(
-      'SELECT * FROM moves WHERE game_id = ? AND row = ? AND col = ?',
+      'SELECT * FROM moves WHERE gameId = ? AND row = ? AND col = ?',
       [gameId, row, col]
     );
   }
 
   async getAllMovesForGame(gameId) {
     return await this.db.all(
-      'SELECT player, row, col FROM moves WHERE game_id = ?',
+      'SELECT player, row, col FROM moves WHERE gameId = ?',
       [gameId]
     );
   }
@@ -133,28 +133,20 @@ class GameService {
   }
 
   async makeMove(gameId, player, row, col) {
-    const result = await this.db.get(
-      'SELECT COUNT(*) as count FROM moves WHERE game_id = ?',
-      [gameId]
-    );
-
-    const moveNumber = result.count + 1;
-    const nextPlayer = player === 'X' ? 'O' : 'X';
-
-    await this.recordMove(gameId, player, row, col, moveNumber);
+    await this.recordMove(gameId, player, row, col);
 
     const moves = await this.getAllMovesForGame(gameId);
     const gameResult = this.checkWinner(moves);
+    const nextPlayer = player === 'X' ? 'O' : 'X';
 
     if (gameResult) {
       await this.db.run(
-        'UPDATE games SET status = ?, winner = ?, current_player = ? WHERE id = ?',
+        'UPDATE games SET status = ?, winner = ?, currentPlayer = ? WHERE id = ?',
         ['COMPLETE', gameResult, player, gameId]
       );
 
       return {
         id: gameId,
-        move_number: moveNumber,
         player,
         row,
         col,
@@ -167,7 +159,6 @@ class GameService {
       
       return {
         id: gameId,
-        move_number: moveNumber,
         player,
         row,
         col,
@@ -178,16 +169,16 @@ class GameService {
     }
   }
 
-  async recordMove(gameId, player, row, col, moveNumber) {
+  async recordMove(gameId, player, row, col) {
     await this.db.run(
-      'INSERT INTO moves (game_id, player, row, col, move_number) VALUES (?, ?, ?, ?, ?)',
-      [gameId, player, row, col, moveNumber]
+      'INSERT INTO moves (gameId, player, row, col) VALUES (?, ?, ?, ?)',
+      [gameId, player, row, col]
     );
   }
 
   async updateCurrentPlayer(gameId, nextPlayer) {
     await this.db.run(
-      'UPDATE games SET current_player = ? WHERE id = ?',
+      'UPDATE games SET currentPlayer = ? WHERE id = ?',
       [nextPlayer, gameId]
     );
   }

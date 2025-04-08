@@ -226,11 +226,11 @@ components:
       properties:
         id:
           type: string
-        player_x:
+        playerX:
           type: string
-        player_o:
+        playerO:
           type: string
-        current_player:
+        currentPlayer:
           type: string
           enum: [X, O]
         status:
@@ -246,7 +246,7 @@ components:
             items:
               type: string
               enum: [X, O, null]
-        created_at:
+        createdAt:
           type: string
           format: date-time
 
@@ -255,8 +255,6 @@ components:
       properties:
         id:
           type: string
-        move_number:
-          type: integer
         player:
           type: string
           enum: [X, O]
