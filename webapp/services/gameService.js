@@ -62,8 +62,7 @@ class GameService {
     if (game.status !== 'IN_PROGRESS') {
       throw new Error('Game is already complete');
     }
-    if ((game.current_player == 'X' && game.player_x !== player)
-      || (game.current_player == 'O' && game.player_o !== player)) {
+    if (game.current_player !== player) {
       throw new Error('Not your turn');
     }
 
