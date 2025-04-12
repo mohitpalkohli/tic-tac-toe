@@ -56,7 +56,8 @@ const PORT = process.env.PORT || 3000;
     });
 
     // Load OpenAPI spec
-    const openApiSpec = YAML.load(path.join(__dirname, '../docs/openapi.yaml'));
+    const openApiSpec = YAML.load(path.join(__dirname, './docs/openapi.yaml'));
+    console.log(path.join(__dirname, './docs/openapi.yaml'));
 
     app.use('/api/games', gameRoutes);
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));

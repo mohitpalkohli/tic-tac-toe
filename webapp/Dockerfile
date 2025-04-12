@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["/bin/sh", "-c", "npm start & tail -f /dev/null"]
