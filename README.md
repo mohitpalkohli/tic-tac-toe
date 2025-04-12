@@ -4,7 +4,7 @@ This is a toy version of a tic-tac-toe application in which two players in diffe
 ## AI Acknowledgement
 This application was developed with the assistance of Cursor IDE. I designed and wrote the data model, strategy, and node.js APIs. I heavily used the Composer feature when creating the React UI since it is not an area of strength for me.
 
-## Run the application locally
+## [Option 1] Run the application directly
 ```
 // Node server (runs on localhost:3000)
 // Supported node version v22.14.0
@@ -17,7 +17,14 @@ cd /path/to/frontend
 npm install
 npm start
 ```
-* Access the application: http://localhost:3001
+
+## [Option 2] Run the application in Docker
+```
+docker compose up -d
+```
+
+## Access the application
+* Application UI: http://localhost:3001
 * API documentation: http://localhost:3000/api-docs
 
 
